@@ -6,7 +6,7 @@
   "publisher": "Odoo",
   "repository": {
     "type": "git",
-    "url": "https://github.com/odoo/odoo-ls"
+    "url": "https://github.com/odoo/odoo-ls-vscode"
   },
   "engines": {
     "vscode": "^1.78.0"
