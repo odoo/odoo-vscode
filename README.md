@@ -15,6 +15,8 @@ This extension integrates the Odoo Language Server, that will help you in the de
 
 **This project is currently under active development. This is a complex project, and you can encounter various issues, incoherent data or crashes. Do not hesitate to report them to help us build the perfect tool !**
 
+This repository contains the code that build the VsCode extension for OdooLS. OdooLs itself is available [here](https://github.com/odoo/odoo-ls)
+
 ## Features
 
 - Autocompletion
@@ -23,9 +25,8 @@ This extension integrates the Odoo Language Server, that will help you in the de
   - Model fields Completion
   ![Autocompletion in a loop](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion2.png "Autocompletion 2")
   - Smart String completion
-  ![Autocompletion in a decorator](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion2.png "Autocompletion 3")
-  ![Autocompletion in self.env](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion3.png "Autocompletion 4")
-  ![Autocompletion in inverse kwarg](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion4.png "Autocompletion 5")
+  ![Autocompletion in self.env](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion3.png "Autocompletion 3")
+  ![Autocompletion in inverse kwarg](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion4.png "Autocompletion 4")
 
 - Advanced Hover and GoToDefinition
   Even on String values!
