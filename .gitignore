@@ -1,0 +1,16 @@
+out
+node_modules
+.idea
+.vscode-test
+.vscode/settings.json
+env
+*.pyc
+*.log
+*.vsix
+*.lock
+package-lock.json
+.nox
+__pycache__
+requirements.txt
+CHANGELOG.md
+build
