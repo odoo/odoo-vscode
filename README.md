@@ -1,7 +1,7 @@
 <h1 align="center">
   <br>
   <a href="https://marketplace.visualstudio.com/items?itemName=Odoo.odoo">
-  <img src="https://github.com/odoo/odoo-ls/blob/master/vscode/images/odoo_logo.png?raw=true"></a>
+  <img src="https://github.com/odoo/odoo-ls-vscode/blob/master/images/odoo_logo.png?raw=true"></a>
   <br>
   Visual Studio Extension
   <br>
@@ -21,21 +21,21 @@ This repository contains the code that build the VsCode extension for OdooLS. Od
 
 - Autocompletion
   - Simple Autocompletion
-  ![Autocompletion picture](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocomplete.png "Autocompletion")
+  ![Autocompletion picture](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/autocomplete.png "Autocompletion")
   - Model fields Completion
-  ![Autocompletion in a loop](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion2.png "Autocompletion 2")
+  ![Autocompletion in a loop](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/autocompletion2.png "Autocompletion 2")
   - Smart String completion
-  ![Autocompletion in self.env](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion3.png "Autocompletion 3")
-  ![Autocompletion in inverse kwarg](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/autocompletion4.png "Autocompletion 4")
+  ![Autocompletion in self.env](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/autocompletion3.png "Autocompletion 3")
+  ![Autocompletion in inverse kwarg](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/autocompletion4.png "Autocompletion 4")
 
 - Advanced Hover and GoToDefinition
   Even on String values!
-  ![Advanced Hover and GoToDefinition](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/advanced_hover_def.gif "Autocompletion 5")
+  ![Advanced Hover and GoToDefinition](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/advanced_hover_def.gif "Autocompletion 5")
 
 - Diagnostics
 
-![diagnostics picture](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/diagnostics.png "Diagnostics")
-![diagnostics picture 2](https://raw.githubusercontent.com/odoo/odoo-ls/master/vscode/images/diagnostics2.png "Diagnostics2")
+![diagnostics picture](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/diagnostics.png "Diagnostics")
+![diagnostics picture 2](https://raw.githubusercontent.com/odoo/odoo-ls-vscode/master/images/diagnostics2.png "Diagnostics2")
 
 ## Installation
 
