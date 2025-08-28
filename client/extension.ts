@@ -253,7 +253,7 @@ async function findLastLogFile(context: ExtensionContext, pid: number) {
     let suffix =  `.${pid}.log`
     let cwd = path.join(__dirname, "..", "..");
     if (context.extensionMode === ExtensionMode.Development) {
-        cwd = path.join(cwd, "..", "server", "target", "debug");
+        cwd = path.join(cwd, "..", "odoo-ls", "server", "target", "debug");
     }
     let directory = path.join(cwd, "logs");
     const files = fs.readdirSync(directory);

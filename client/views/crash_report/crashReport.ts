@@ -152,12 +152,14 @@ export class CrashReportWebView {
                     if (this._debugFile !== undefined) {
                         server_logs = fs.readFileSync(this._debugFile, 'base64');
                     }
-                    axios.post('https://iap-services.odoo.com/api/odools/vscode/1/crash_report', {
+                    axios.post('https://iap-services.odoo.com/api/odools/vscode/2/crash_report', {
                         data: {
                             uid: this.UID,
+                            ide: "vscode",
+                            email: message.email,
                             document: this._document ? this._document.getText() : null,
                             document_path: this._document ? this._document.uri.fsPath: null,
-                            pygls_log: server_logs,
+                            lsp_log: server_logs,
                             error: this._error,
                             additional_info: message.additional_info,
                             version: this._context.extension.packageJSON.version,

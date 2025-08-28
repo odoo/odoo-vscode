@@ -11,6 +11,7 @@ function main() {
 function sendCrashReport() {
     vscode.postMessage({
         command: "send_report",
-        additional_info: document.querySelector('#crash-report-form').data["additional_info"]
+        additional_info: document.querySelector('#crash-report-form').data["additional_info"],
+        email: document.querySelector('#crash-report-form').data["email"],
     });
 }

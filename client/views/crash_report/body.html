@@ -47,6 +47,16 @@
                 <vscode-textarea id="additional-info-field" name="additional_info" resize="vertical" placeholder="Tell us more about what you were doing when the crash happened" maxlength="2000" rows="10" cols="130"></vscode-textarea>
             </vscode-form-group>
             <vscode-form-group variant="vertical">
+                <vscode-label style="margin-bottom: 4px;">
+                    You can let us an email we could contact to follow up on the issue
+                </vscode-label>
+                <vscode-label for="email-field">
+                    Email (Optional)
+                </vscode-label>
+                <vscode-textfield id="email-field" name="email" placeholder="Your email address (optional)" maxlength="254"></vscode-textfield>
+                <vscode-form-helper>Emails are only kept to contact you regarding this error. When the crash has been handled by the team, it will be discarded from the database.</vscode-form-helper>
+            </vscode-form-group>
+            <vscode-form-group variant="vertical">
                 <vscode-button id="send-report-button">Send report</vscode-button>
             </vscode-form-group>
         </vscode-form-container>
