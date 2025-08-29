@@ -155,16 +155,36 @@ def build_package(session: nox.Session) -> None:
     os.makedirs(f"build/{session.posargs[0]}", exist_ok=True)
     targets = get_targets(session)
     _setup_template_environment(session)
-    session.run("npm", "install", external=True)
-    copy_dir(session, "../server/typeshed", "typeshed")
-    copy_dir(session, "../server/additional_stubs", "additional_stubs")
-    session.run("cp", "../changelog.md", "changelog.md", external=True)
-    for target in targets:
-        build_specific_target(session, target, False)
-        session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
-    session.run("rm", "-r", "typeshed", external=True)
-    session.run("rm", "-r", "additional_stubs", external=True)
-    session.run("rm", "changelog.md", external=True)
+
+    # Replace ${{SCHEMA_VERSION}} in tomlValidation.url with package.json version
+    package_json_path = pathlib.Path(__file__).parent / "package.json"
+    original_package_json = package_json_path.read_text(encoding="utf-8")
+    package_json = json.loads(original_package_json)
+    schema_version = package_json["version"]
+    for item in package_json.get("contributes", {}).get("tomlValidation", []):
+        url = item.get("url", "")
+        if "${{SCHEMA_VERSION}}" in url:
+            item["url"] = url.replace("${{SCHEMA_VERSION}}", schema_version)
+            package_json_path.write_text(json.dumps(package_json, indent=4) + "\n", encoding="utf-8")
+            break
+    else:
+        print("WARNING: '${{SCHEMA_VERSION}}' not found in tomlValidation URL in package.json!")
+        return
+
+    try:
+        session.run("npm", "install", external=True)
+        copy_dir(session, "../server/typeshed", "typeshed")
+        copy_dir(session, "../server/additional_stubs", "additional_stubs")
+        session.run("cp", "../changelog.md", "changelog.md", external=True)
+        for target in targets:
+            build_specific_target(session, target, False)
+            session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
+        session.run("rm", "-r", "typeshed", external=True)
+        session.run("rm", "-r", "additional_stubs", external=True)
+        session.run("rm", "changelog.md", external=True)
+    finally:
+        # Always revert package.json to its original form
+        package_json_path.write_text(original_package_json, encoding="utf-8")
 
 @nox.session()
 def build_package_prerelease(session: nox.Session) -> None:
@@ -173,16 +193,36 @@ def build_package_prerelease(session: nox.Session) -> None:
     os.makedirs(f"build/{session.posargs[0]}", exist_ok=True)
     targets = get_targets(session)
     _setup_template_environment(session)
-    session.run("npm", "install", external=True)
-    copy_dir(session, "../server/typeshed", "typeshed")
-    copy_dir(session, "../server/additional_stubs", "additional_stubs")
-    session.run("cp", "../changelog.md", "changelog.md", external=True)
-    for target in targets:
-        build_specific_target(session, target, True)
-        session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
-    session.run("rm", "-r", "typeshed", external=True)
-    session.run("rm", "-r", "additional_stubs", external=True)
-    session.run("rm", "changelog.md", external=True)
+
+    # Replace ${{SCHEMA_VERSION}} in tomlValidation.url with package.json version
+    package_json_path = pathlib.Path(__file__).parent / "package.json"
+    original_package_json = package_json_path.read_text(encoding="utf-8")
+    package_json = json.loads(original_package_json)
+    schema_version = package_json["version"]
+    for item in package_json.get("contributes", {}).get("tomlValidation", []):
+        url = item.get("url", "")
+        if "${{SCHEMA_VERSION}}" in url:
+            item["url"] = url.replace("${{SCHEMA_VERSION}}", schema_version)
+            package_json_path.write_text(json.dumps(package_json, indent=4) + "\n", encoding="utf-8")
+            break
+    else:
+        print("WARNING: '${{SCHEMA_VERSION}}' not found in tomlValidation URL in package.json!")
+        return
+
+    try:
+        session.run("npm", "install", external=True)
+        copy_dir(session, "../server/typeshed", "typeshed")
+        copy_dir(session, "../server/additional_stubs", "additional_stubs")
+        session.run("cp", "../changelog.md", "changelog.md", external=True)
+        for target in targets:
+            build_specific_target(session, target, True)
+            session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
+        session.run("rm", "-r", "typeshed", external=True)
+        session.run("rm", "-r", "additional_stubs", external=True)
+        session.run("rm", "changelog.md", external=True)
+    finally:
+        # Always revert package.json to its original form
+        package_json_path.write_text(original_package_json, encoding="utf-8")
 
 @nox.session()
 def update_packages(session: nox.Session) -> None:

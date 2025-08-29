@@ -131,7 +131,15 @@
           "description": "Optional path to the server configuration file"
         }
       }
-    }
+    },
+    "tomlValidation": [
+      {
+        "fileMatch": [
+          "^.*odools.toml$"
+        ],
+        "url": "https://github.com/odoo/odoo-ls/releases/download/${{SCHEMA_VERSION}}/config_schema.json"
+      }
+    ]
   },
   "main": "./client/out/main.js",
   "scripts": {
