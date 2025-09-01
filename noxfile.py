@@ -90,13 +90,13 @@ def build_specific_target(session: nox.Session, target: str, debug: bool) -> Non
     else:
         print(f"Unknown target: {target}")
         return
-    if not Path(f"../server/target/{rust_target}/release/{file_name}").is_file():
+    if not Path(f"../odoo-ls/server/target/{rust_target}/release/{file_name}").is_file():
         print(f"Unable to find odoo_ls_server binary for {target}, please build the server first.")
         return
-    session.run("cp", f"../server/target/{rust_target}/release/{file_name}", file_name, external=True)
+    session.run("cp", f"../odoo-ls/server/target/{rust_target}/release/{file_name}", file_name, external=True)
     if take_pdb:
-        if Path(f"../server/target/{rust_target}/release/odoo_ls_server.pdb").is_file():
-            session.run("cp", f"../server/target/{rust_target}/release/odoo_ls_server.pdb", "odoo_ls_server.pdb", external=True)
+        if Path(f"../odoo-ls/server/target/{rust_target}/release/odoo_ls_server.pdb").is_file():
+            session.run("cp", f"../odoo-ls/server/target/{rust_target}/release/odoo_ls_server.pdb", "odoo_ls_server.pdb", external=True)
         else:
             print(f"Unable to find odoo_ls_server.pdb for {target}, please build the server first.")
             return
@@ -173,9 +173,9 @@ def build_package(session: nox.Session) -> None:
 
     try:
         session.run("npm", "install", external=True)
-        copy_dir(session, "../server/typeshed", "typeshed")
-        copy_dir(session, "../server/additional_stubs", "additional_stubs")
-        session.run("cp", "../changelog.md", "changelog.md", external=True)
+        copy_dir(session, "../odoo-ls/server/typeshed", "typeshed")
+        copy_dir(session, "../odoo-ls/server/additional_stubs", "additional_stubs")
+        session.run("cp", "../odoo-ls/changelog.md", "changelog.md", external=True)
         for target in targets:
             build_specific_target(session, target, False)
             session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
@@ -211,9 +211,9 @@ def build_package_prerelease(session: nox.Session) -> None:
 
     try:
         session.run("npm", "install", external=True)
-        copy_dir(session, "../server/typeshed", "typeshed")
-        copy_dir(session, "../server/additional_stubs", "additional_stubs")
-        session.run("cp", "../changelog.md", "changelog.md", external=True)
+        copy_dir(session, "../odoo-ls/server/typeshed", "typeshed")
+        copy_dir(session, "../odoo-ls/server/additional_stubs", "additional_stubs")
+        session.run("cp", "../odoo-ls/changelog.md", "changelog.md", external=True)
         for target in targets:
             build_specific_target(session, target, True)
             session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
