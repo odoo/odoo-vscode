@@ -86,7 +86,8 @@ export class WelcomeWebView {
         const nonce = getNonce();
 
         if (this._context.extension.packageJSON.version.includes("alpha") || this._context.extension.packageJSON.version.includes("beta") ||
-            this._context.extension.packageJSON.version.split(".")[1] % 2 == 0) {
+            (this._context.extension.packageJSON.version.split(".")[0] === "0" && this._context.extension.packageJSON.version.split(".")[1] % 2 == 0) ||
+            (parseInt(this._context.extension.packageJSON.version.split(".")[0], 10) > 0 && this._context.extension.packageJSON.version.split(".")[1] % 2 == 1)) {
             alertData = {
                 version: this._context.extension.packageJSON.version
             }
