@@ -42,7 +42,6 @@ This repository contains the code that build the VsCode extension for OdooLS. Od
 ### Requirements
 
 - Odoo 14+
-- Python 3.8+
 
 ### Automatic installation
 
