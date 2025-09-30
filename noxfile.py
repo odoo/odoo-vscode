@@ -156,19 +156,19 @@ def build_package(session: nox.Session) -> None:
     targets = get_targets(session)
     _setup_template_environment(session)
 
-    # Replace ${{SCHEMA_VERSION}} in tomlValidation.url with package.json version
+    # Replace __SCHEMA_VERSION__ in tomlValidation.url with package.json version
     package_json_path = pathlib.Path(__file__).parent / "package.json"
     original_package_json = package_json_path.read_text(encoding="utf-8")
     package_json = json.loads(original_package_json)
     schema_version = package_json["version"]
     for item in package_json.get("contributes", {}).get("tomlValidation", []):
         url = item.get("url", "")
-        if "${{SCHEMA_VERSION}}" in url:
-            item["url"] = url.replace("${{SCHEMA_VERSION}}", schema_version)
+        if "__SCHEMA_VERSION__" in url:
+            item["url"] = url.replace("__SCHEMA_VERSION__", schema_version)
             package_json_path.write_text(json.dumps(package_json, indent=4) + "\n", encoding="utf-8")
             break
     else:
-        print("WARNING: '${{SCHEMA_VERSION}}' not found in tomlValidation URL in package.json!")
+        print("WARNING: '__SCHEMA_VERSION__' not found in tomlValidation URL in package.json!")
         return
 
     try:
@@ -194,19 +194,19 @@ def build_package_prerelease(session: nox.Session) -> None:
     targets = get_targets(session)
     _setup_template_environment(session)
 
-    # Replace ${{SCHEMA_VERSION}} in tomlValidation.url with package.json version
+    # Replace __SCHEMA_VERSION__ in tomlValidation.url with package.json version
     package_json_path = pathlib.Path(__file__).parent / "package.json"
     original_package_json = package_json_path.read_text(encoding="utf-8")
     package_json = json.loads(original_package_json)
     schema_version = package_json["version"]
     for item in package_json.get("contributes", {}).get("tomlValidation", []):
         url = item.get("url", "")
-        if "${{SCHEMA_VERSION}}" in url:
-            item["url"] = url.replace("${{SCHEMA_VERSION}}", schema_version)
+        if "__SCHEMA_VERSION__" in url:
+            item["url"] = url.replace("__SCHEMA_VERSION__", schema_version)
             package_json_path.write_text(json.dumps(package_json, indent=4) + "\n", encoding="utf-8")
             break
     else:
-        print("WARNING: '${{SCHEMA_VERSION}}' not found in tomlValidation URL in package.json!")
+        print("WARNING: '__SCHEMA_VERSION__' not found in tomlValidation URL in package.json!")
         return
 
     try:

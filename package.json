@@ -137,7 +137,7 @@
         "fileMatch": [
           "^.*odools.toml$"
         ],
-        "url": "https://github.com/odoo/odoo-ls/releases/download/${{SCHEMA_VERSION}}/config_schema.json"
+        "url": "https://github.com/odoo/odoo-ls/releases/download/__SCHEMA_VERSION__/config_schema.json"
       }
     ]
   },
