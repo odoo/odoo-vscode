@@ -1,0 +1,150 @@
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: alpine-x86_64
+            vsix: alpine-x64
+          - target: alpine-aarch64
+            vsix: alpine-arm64
+          - target: linux-x86_64
+            vsix: linux-x64
+          - target: linux-aarch64
+            vsix: linux-arm64
+          - target: darwin-x86_64
+            vsix: darwin-x64
+          - target: darwin-aarch64
+            vsix: darwin-arm64
+          - target: win32-x86_64
+            vsix: win32-x64
+          - target: win32-aarch64
+            vsix: win32-arm64
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Extract version info
+      id: version
+      run: |
+        TAG="${GITHUB_REF_NAME}"
+        MINOR=$(echo "$TAG" | cut -d. -f2)
+        echo "version=$TAG" >> $GITHUB_OUTPUT
+        echo "changelog_url=https://raw.githubusercontent.com/odoo/odoo-ls/$TAG/changelog.md" >> $GITHUB_OUTPUT
+        if [ $((MINOR % 2)) -eq 1 ]; then
+          echo "command=package --prerelease" >> $GITHUB_OUTPUT
+        else
+          echo "command=package" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Clone typeshed
+      run: |
+        git clone https://github.com/python/typeshed typeshed
+
+    - name: Checkout additional stubs from OdooLS
+      uses: actions/checkout@v4
+      with:
+        repository: odoo/odoo-ls
+        ref: ${{ steps.version.outputs.version }}
+        path: additional_stubs
+        sparse-checkout: server/additional_stubs
+        sparse-checkout-cone-mode: false
+
+    - name: Flatten additional_stubs and clean
+      run: |
+        # Move the stubs to the root of additional_stubs
+        mv additional_stubs/server/additional_stubs/* additional_stubs/
+        rm -rf additional_stubs/server
+
+    - name: Replace SCHEMA_VERSION in package.json
+      run: |
+        VERSION=${{ steps.version.outputs.version }}
+        sed -i 's/__SCHEMA_VERSION__/'"$VERSION"'/g' package.json
+
+    - name: Download changelog
+      run: |
+        wget ${{ steps.version.outputs.changelog_url }}
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+    - run: npm install
+
+    - name: Install vsce
+      uses: actions/setup-node@v4
+    - run: npm install @vscode/vsce
+
+    - name: Download language server ${{ matrix.target }}
+      run: |
+        VERSION=${{ steps.version.outputs.version }}
+        if [[ "${{ matrix.target }}" == win32* ]]; then
+          wget https://github.com/odoo/odoo-ls/releases/download/$VERSION/odoo-${{ matrix.target }}-$VERSION.zip -O odoo-ls.zip
+          unzip odoo-ls.zip -d .
+          rm odoo-ls.zip
+        else
+          wget https://github.com/odoo/odoo-ls/releases/download/$VERSION/odoo-${{ matrix.target }}-$VERSION.tar.gz -O odoo-ls.tar.gz
+          tar -xvzf odoo-ls.tar.gz
+          rm odoo-ls.tar.gz
+        fi
+
+    - name: Build VSIX for ${{ matrix.target }}
+      run: npx vsce ${{ steps.version.outputs.command }} --target ${{ matrix.vsix }}
+      env:
+        NODE_ENV: production
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: vsix-${{ matrix.target }}
+        path: "*.vsix"
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./dist
+
+      - name: Extract version info
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          MINOR=$(echo "$TAG" | cut -d. -f2)
+          echo "changelog_url=https://raw.githubusercontent.com/odoo/odoo-ls/$TAG/changelog.md" >> $GITHUB_OUTPUT
+          if [ $((MINOR % 2)) -eq 1 ]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "title=$TAG - Beta" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+            echo "title=$TAG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download changelog
+        run: |
+          wget ${{ steps.version.outputs.changelog_url }}
+
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          awk "/^## \\[$TAG\\]/ {flag=1; next} /^## \\[/ {flag=0} flag {print}" changelog.md > RELEASE_NOTES.md
+
+      - name: Display files
+        run: ls -R ./dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.version.outputs.title }}
+          tag_name: ${{ github.ref_name }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          body_path: RELEASE_NOTES.md
+          files: ./dist/**/*.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
