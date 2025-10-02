@@ -2,7 +2,7 @@
   "name": "odoo",
   "displayName": "Odoo",
   "description": "Language Server for Odoo projects",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "Odoo",
   "repository": {
     "type": "git",
