@@ -279,7 +279,7 @@ async function findLastLogFile(context: ExtensionContext, pid: number) {
     return path.join(directory, logFiles[0]);
 }
 
-async function displayCrashMessage(context: ExtensionContext, crashInfo: string, pid = 0, command: string = null, outputChannel = global.LSCLIENT.outputChannel) {
+async function displayCrashMessage(context: ExtensionContext, crashInfo: string, pid = 0, recentMessages: string = null, command: string = null, outputChannel = global.LSCLIENT.outputChannel) {
     // Capture the content of the file active when the crash happened
     let activeFile: TextDocument;
     if (window.activeTextEditor) {
@@ -298,7 +298,7 @@ async function displayCrashMessage(context: ExtensionContext, crashInfo: string,
 
     switch (selection) {
         case ("Send crash report"):
-            CrashReportWebView.render(context, activeFile, crashInfo, command, log_file);
+            CrashReportWebView.render(context, activeFile, crashInfo, command, log_file, recentMessages);
             break
         case ("Open logs"):
             outputChannel.show();
@@ -367,7 +367,7 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
                 );
             }),
             client.onNotification("Odoo/displayCrashNotification", async (params) => {
-                await displayCrashMessage(context, params["crashInfo"], params["pid"]);
+                await displayCrashMessage(context, params["crashInfo"], params["pid"], params["recentMessages"]);
             }),
             client.onNotification("$Odoo/restartNeeded", async () => {
                 if (global.LSCLIENT) {
@@ -385,7 +385,7 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
     } catch (error) {
         outputChannel.appendLine("Couldn't Start Language server.");
         outputChannel.appendLine(error);
-        await displayCrashMessage(context, error, global.SERVER_PID, 'initLanguageServer', outputChannel);
+        await displayCrashMessage(context, error, global.SERVER_PID, "N/A", 'initLanguageServer', outputChannel);
     }
 }
 

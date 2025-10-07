@@ -15,7 +15,7 @@
         <p>
             It seems like an unexpected crash happened and halted the execution of the Odoo VSCode extension.
             <br/>
-            By sending this crash report you agree to send to the IAP Team the following information. Please review them carefully:
+            By sending this crash report you agree to send to the OdooLS Team the following information. Please review them carefully:
         </p>
         <ul>
             <li>
@@ -27,12 +27,15 @@
             <li>
                 Eventual additional information you've provided in this form.
             </li>
+            <li>
+                The recent messages exchanged with the language server and client. These messages may contain snippets of code from the currently opened document, but only if they were part of the messages exchanged with the language server.
+            </li>
         </ul>
         <vscode-form-container id="crash-report-form">
             <vscode-form-group variant="vertical">
                 <vscode-label>Crash ID</vscode-label>
                 <vscode-textfield value="<%= crashUID %>" readonly></vscode-textfield>
-                <vscode-form-helper>You can send this ID to the IAP team when discussing an issue with them.</vscode-form-helper>
+                <vscode-form-helper>You can send this ID to the OdooLS team when discussing an issue with them.</vscode-form-helper>
             </vscode-form-group>
             <vscode-form-group variant="vertical">
                 <vscode-label for="crash-info-field">

@@ -20,13 +20,14 @@ export class CrashReportWebView {
     private readonly _error: String;
     private readonly _command: String;
     private readonly _debugFile: string;
+    private readonly _recentMessages: any;
     /**
      * The CrashReportWebView class private constructor (called only from the render method).
      *
      * @param panel A reference to the webview panel
      * @param extensionUri The URI of the directory containing the extension
      */
-    private constructor(panel: WebviewPanel, uid: String, context: vscode.ExtensionContext, document: vscode.TextDocument, error: String, command: String = null, debugFile: string) {
+    private constructor(panel: WebviewPanel, uid: String, context: vscode.ExtensionContext, document: vscode.TextDocument, error: String, command: String = null, debugFile: string, recentMessages: string = null) {
         this._panel = panel;
         this._context = context;
         this._document = document;
@@ -34,6 +35,7 @@ export class CrashReportWebView {
         this.UID = uid;
         this._command = command;
         this._debugFile = debugFile;
+        this._recentMessages = recentMessages;
 
         // Set an event listener to listen for when the panel is disposed (i.e. when the user closes
         // the panel or when the panel is closed programmatically)
@@ -52,7 +54,7 @@ export class CrashReportWebView {
      *
      * @param extensionUri The URI of the directory containing the extension.
      */
-    public static render(context: vscode.ExtensionContext, document: vscode.TextDocument, error: String, command: String = null, debugFile: string) {
+    public static render(context: vscode.ExtensionContext, document: vscode.TextDocument, error: String, command: String = null, debugFile: string, recentMessages: any = null) {
         if (!CrashReportWebView.panels) {
             CrashReportWebView.panels = new Map();
         }
@@ -71,7 +73,7 @@ export class CrashReportWebView {
             }
         );
         const UID = crypto.randomBytes(8).toString('hex');
-        CrashReportWebView.panels.set(UID, new CrashReportWebView(panel, UID, context, document, error, command, debugFile));
+        CrashReportWebView.panels.set(UID, new CrashReportWebView(panel, UID, context, document, error, command, debugFile, recentMessages));
     }
 
     /**
@@ -152,7 +154,7 @@ export class CrashReportWebView {
                     if (this._debugFile !== undefined) {
                         server_logs = fs.readFileSync(this._debugFile, 'base64');
                     }
-                    axios.post('https://iap-services.odoo.com/api/odools/vscode/2/crash_report', {
+                    axios.post('https://iap-services.odoo.com/api/odools/vscode/3/crash_report', {
                         data: {
                             uid: this.UID,
                             ide: "vscode",
@@ -166,6 +168,7 @@ export class CrashReportWebView {
                             python_version: version,
                             configuration: configString,
                             command: this._command,
+                            recent_messages: this._recentMessages? this._recentMessages : "",
                         }
                     });
                     this.dispose();
