@@ -7,7 +7,7 @@ declare global {
    var LSCLIENT: LanguageClient;
    var STATUS_BAR: StatusBarItem;
    var OUTPUT_CHANNEL: OutputChannel;
-   var IS_LOADING: boolean;
+   var LOADING_STATUS: String;
    var SERVER_PID: number;
    var CLIENT_IS_STOPPING: boolean;
    var CAN_QUEUE_CONFIG_CHANGE: boolean;

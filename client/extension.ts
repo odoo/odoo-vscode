@@ -207,8 +207,25 @@ const RESTART_COMMAND_MD = `[$(list-unordered) Show all configurations](command:
 
 async function setStatusConfig(context: ExtensionContext) {
     const config = await getCurrentConfig(context);
+    let icon: string;
+    let text_git = "";
+    switch (global.LOADING_STATUS) {
+        case "LOADING":
+            icon = "$(loading~spin) ";
+            break;
+        case "READY":
+            icon = "";
+            break;
+        case "GIT_LOCKED":
+            icon = "$(lock) ";
+            text_git = " (awaiting git)";
+            break;
+        default:
+            icon = "";
+            break;
+    }
     let text = (config ? `Odoo (${config})` : `Odoo (Default)`);
-    global.STATUS_BAR.text = (global.IS_LOADING) ? "$(loading~spin) " + text : text;
+    global.STATUS_BAR.text = icon + text + text_git;
 
     let tooltipMd = '';
     if (config && config !== 'Disabled') {
@@ -337,13 +354,16 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
         }
 
         context.subscriptions.push(
-            client.onNotification("$Odoo/loadingStatusUpdate", async (state: String) => {
-                switch (state) {
+            client.onNotification("$Odoo/loadingStatusUpdate", async (status: string) => {
+                switch (status) {
                     case "start":
-                        global.IS_LOADING = true;
+                        global.LOADING_STATUS = "LOADING";
                         break;
                     case "stop":
-                        global.IS_LOADING = false;
+                        global.LOADING_STATUS = "READY";
+                        break;
+                    case "git_locked":
+                        global.LOADING_STATUS = "GIT_LOCKED";
                         break;
                 }
                 await setStatusConfig(context);
@@ -372,8 +392,8 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
             client.onNotification("$Odoo/restartNeeded", async () => {
                 if (global.LSCLIENT) {
                     global.LSCLIENT.restart();
-                    global.IS_LOADING = false;
-                    setStatusConfig(context);
+                    global.LOADING_STATUS = "READY";
+                    await setStatusConfig(context);
                 }
             })
         );
@@ -525,8 +545,8 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
             "odoo.restartServer", async () => {
                 if (global.LSCLIENT) {
                     global.LSCLIENT.restart();
-                    global.IS_LOADING = false;
-                    setStatusConfig(context);
+                    global.LOADING_STATUS = "READY";
+                    await setStatusConfig(context);
                 }
         }),
         commands.registerCommand("odoo.showServerConfig", async () => {
@@ -696,7 +716,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         deleteOldFiles(context);
         global.LSCLIENT.info('Starting the extension.');
-        setStatusConfig(context);
+        await setStatusConfig(context);
         global.LSCLIENT.start();
     }
     catch (error) {
@@ -716,7 +736,7 @@ async function waitForClientStop() {
 async function stopClient() {
     if (global.LSCLIENT && !global.CLIENT_IS_STOPPING) {
         global.LSCLIENT.info("Stopping LS Client.");
-        global.IS_LOADING = false;
+        global.LOADING_STATUS = "READY";
         global.CLIENT_IS_STOPPING = true;
         await global.LSCLIENT.stop(15000);
         global.CLIENT_IS_STOPPING = false;
@@ -839,8 +859,8 @@ async function showConfigProfileQuickPick(context: ExtensionContext) {
         const ok = await changeSelectedConfig(context, selection.label);
         if (ok && global.LSCLIENT) {
             global.LSCLIENT.restart();
-            global.IS_LOADING = false;
-            setStatusConfig(context);
+            global.LOADING_STATUS = "READY";
+            await setStatusConfig(context);
         }
       }
     }
