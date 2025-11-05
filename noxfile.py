@@ -151,8 +151,9 @@ def get_targets(session: nox.Session) -> List[str]:
 @nox.session()
 def build_package(session: nox.Session) -> None:
     """Builds VSIX package for publishing."""
+    version = session.posargs[0].strip()
     os.makedirs("build", exist_ok=True)
-    os.makedirs(f"build/{session.posargs[0]}", exist_ok=True)
+    os.makedirs(f"build/{version}", exist_ok=True)
     targets = get_targets(session)
     _setup_template_environment(session)
 
@@ -178,7 +179,7 @@ def build_package(session: nox.Session) -> None:
         session.run("cp", "../odoo-ls/changelog.md", "changelog.md", external=True)
         for target in targets:
             build_specific_target(session, target, False)
-            session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
+            session.run("mv", f"odoo-{target}-{version}.vsix", f"build/{version}/odoo-{target}-{version}.vsix", external=True)
         session.run("rm", "-r", "typeshed", external=True)
         session.run("rm", "-r", "additional_stubs", external=True)
         session.run("rm", "changelog.md", external=True)
@@ -189,8 +190,9 @@ def build_package(session: nox.Session) -> None:
 @nox.session()
 def build_package_prerelease(session: nox.Session) -> None:
     """Builds VSIX package for publishing."""
+    version = session.posargs[0].strip()
     os.makedirs("build", exist_ok=True)
-    os.makedirs(f"build/{session.posargs[0]}", exist_ok=True)
+    os.makedirs(f"build/{version}", exist_ok=True)
     targets = get_targets(session)
     _setup_template_environment(session)
 
@@ -216,7 +218,7 @@ def build_package_prerelease(session: nox.Session) -> None:
         session.run("cp", "../odoo-ls/changelog.md", "changelog.md", external=True)
         for target in targets:
             build_specific_target(session, target, True)
-            session.run("mv", f"odoo-{target}-{session.posargs[0]}.vsix", f"build/{session.posargs[0]}/odoo-{target}-{session.posargs[0]}.vsix", external=True)
+            session.run("mv", f"odoo-{target}-{version}.vsix", f"build/{version}/odoo-{target}-{version}.vsix", external=True)
         session.run("rm", "-r", "typeshed", external=True)
         session.run("rm", "-r", "additional_stubs", external=True)
         session.run("rm", "changelog.md", external=True)
