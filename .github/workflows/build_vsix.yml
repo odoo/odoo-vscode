@@ -37,7 +37,7 @@ jobs:
         echo "version=$TAG" >> $GITHUB_OUTPUT
         echo "changelog_url=https://raw.githubusercontent.com/odoo/odoo-ls/$TAG/changelog.md" >> $GITHUB_OUTPUT
         if [ $((MINOR % 2)) -eq 1 ]; then
-          echo "command=package --prerelease" >> $GITHUB_OUTPUT
+          echo "command=package --pre-release" >> $GITHUB_OUTPUT
         else
           echo "command=package" >> $GITHUB_OUTPUT
         fi
