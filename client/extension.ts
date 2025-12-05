@@ -382,8 +382,8 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
                 }
             }),
             client.onNotification("$Odoo/invalid_python_path", async(params) => {
-                await window.showErrorMessage(
-                    "The Odoo extension is unable to start Python with the path you provided. Verify your configuration"
+                await window.showInformationMessage(
+                    "The Python path configured for Odoo is invalid. Some functionality may not work correctly. Please update the configuration.",
                 );
             }),
             client.onNotification("Odoo/displayCrashNotification", async (params) => {
