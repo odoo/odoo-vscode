@@ -44,6 +44,7 @@ import {
     migrateShowHome
 } from "./migration/migrateConfig";
 import { SafeLanguageClient } from "./common/safeLanguageClient";
+import { checkCompromisedDependencies } from "./common/supplyChainCheck";
 import { constants } from "fs/promises";
 import { ThemeIcon } from "vscode";
 
@@ -686,6 +687,7 @@ export function getCurrentConfigFromConfigFile(context: ExtensionContext): { odo
 export async function activate(context: ExtensionContext): Promise<void> {
     try {
         global.CAN_QUEUE_CONFIG_CHANGE = true;
+        checkCompromisedDependencies(context);
         global.OUTPUT_CHANNEL = window.createOutputChannel('Odoo', 'python');
         global.LSCLIENT = await initLanguageServerClient(context, global.OUTPUT_CHANNEL);
         // Initialize some settings on the extension's launch if they're missing from the state.
