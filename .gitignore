@@ -8,7 +8,6 @@ env
 *.log
 *.vsix
 *.lock
-package-lock.json
 .nox
 __pycache__
 requirements.txt

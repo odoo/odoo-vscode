@@ -24,9 +24,15 @@
     "languages": [
       {
         "id": "csv",
-        "aliases": ["CSV"],
-        "extensions": [".csv"],
-        "mimetypes": ["text/csv"]
+        "aliases": [
+          "CSV"
+        ],
+        "extensions": [
+          ".csv"
+        ],
+        "mimetypes": [
+          "text/csv"
+        ]
       }
     ],
     "configurationDefaults": {
@@ -151,25 +157,25 @@
     "vscode:uninstall": "node ./client/common/cleanup.mjs"
   },
   "devDependencies": {
-    "@types/ejs": "^3.1.2",
-    "@types/markdown-it": "^13.0.1",
-    "@types/node": "^18.0.0",
-    "@types/semver": "^7.5.2",
-    "@types/vscode": "^1.78.0",
-    "@types/vscode-webview": "^1.57.0",
-    "@typescript-eslint/eslint-plugin": "^5.3.0",
-    "@typescript-eslint/parser": "^5.3.0",
+    "@types/ejs": "^3.1.5",
+    "@types/markdown-it": "^13.0.9",
+    "@types/node": "^18.19.130",
+    "@types/semver": "^7.7.1",
+    "@types/vscode": "^1.120.0",
+    "@types/vscode-webview": "^1.57.5",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "esbuild": "^0.28.1",
-    "eslint": "^8.2.0",
-    "typescript": "^4.4.4"
+    "eslint": "^8.57.1",
+    "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@vscode-elements/elements": "^1.12.0",
+    "@vscode-elements/elements": "^1.17.0",
     "@vscode/codicons": "^0.0.33",
-    "@vscode/python-extension": "^1.0.5",
-    "ejs": "^3.1.9",
-    "markdown-it": "^14.1.1",
-    "semver": "^7.5.4",
+    "@vscode/python-extension": "^1.0.6",
+    "ejs": "^3.1.10",
+    "markdown-it": "^14.2.0",
+    "semver": "^7.8.4",
     "vscode-languageclient": "^8.1.0"
   }
 }
