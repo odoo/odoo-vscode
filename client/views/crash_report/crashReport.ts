@@ -2,7 +2,6 @@ import { Disposable, Webview, WebviewPanel, window, Uri } from "vscode";
 import { getUri, getNonce, getCurrentConfig } from "../../common/utils";
 import { getCurrentConfigFromConfigFile } from "../../extension"; // <-- add this import
 import { getPythonVersion } from "../../common/python";
-import axios from 'axios';
 import * as ejs from "ejs";
 import * as vscode from 'vscode';
 import * as fs from 'fs';
@@ -154,23 +153,27 @@ export class CrashReportWebView {
                     if (this._debugFile !== undefined) {
                         server_logs = fs.readFileSync(this._debugFile, 'base64');
                     }
-                    axios.post('https://iap-services.odoo.com/api/odools/vscode/3/crash_report', {
-                        data: {
-                            uid: this.UID,
-                            ide: "vscode",
-                            email: message.email,
-                            document: this._document ? this._document.getText() : null,
-                            document_path: this._document ? this._document.uri.fsPath: null,
-                            lsp_log: server_logs,
-                            error: this._error,
-                            additional_info: message.additional_info,
-                            version: this._context.extension.packageJSON.version,
-                            python_version: version,
-                            configuration: configString,
-                            command: this._command,
-                            recent_messages: this._recentMessages? this._recentMessages : "",
-                        }
-                    });
+                    fetch('https://iap-services.odoo.com/api/odools/vscode/3/crash_report', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            data: {
+                                uid: this.UID,
+                                ide: "vscode",
+                                email: message.email,
+                                document: this._document ? this._document.getText() : null,
+                                document_path: this._document ? this._document.uri.fsPath: null,
+                                lsp_log: server_logs,
+                                error: this._error,
+                                additional_info: message.additional_info,
+                                version: this._context.extension.packageJSON.version,
+                                python_version: version,
+                                configuration: configString,
+                                command: this._command,
+                                recent_messages: this._recentMessages? this._recentMessages : "",
+                            }
+                        }),
+                    }).catch(() => { /* ignore network errors */ });
                     this.dispose();
                     break;
             }
