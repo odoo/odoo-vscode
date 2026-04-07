@@ -5,55 +5,11 @@ import json
 import os
 import pathlib
 import platform
-import urllib.request as url_lib
+import re
 from pathlib import Path
 from typing import List
 
 import nox  # pylint: disable=import-error
-
-def _get_package_data(package):
-    json_uri = f"https://registry.npmjs.org/{package}"
-    with url_lib.urlopen(json_uri) as response:
-        return json.loads(response.read())
-
-
-def _update_npm_packages(session: nox.Session) -> None:
-    pinned = {
-        "vscode-languageclient",
-        "@types/vscode",
-        "@types/node",
-    }
-    package_json_path = pathlib.Path(__file__).parent / "package.json"
-    package_json = json.loads(package_json_path.read_text(encoding="utf-8"))
-
-    for package in package_json["dependencies"]:
-        if package not in pinned:
-            data = _get_package_data(package)
-            latest = "^" + data["dist-tags"]["latest"]
-            package_json["dependencies"][package] = latest
-
-    for package in package_json["devDependencies"]:
-        if package not in pinned:
-            data = _get_package_data(package)
-            latest = "^" + data["dist-tags"]["latest"]
-            package_json["devDependencies"][package] = latest
-
-    # Ensure engine matches the package
-    if (
-        package_json["engines"]["vscode"]
-        != package_json["devDependencies"]["@types/vscode"]
-    ):
-        print(
-            "Please check VS Code engine version and @types/vscode version in package.json."
-        )
-
-    new_package_json = json.dumps(package_json, indent=4)
-    # JSON dumps uses \n for line ending on all platforms by default
-    if not new_package_json.endswith("\n"):
-        new_package_json += "\n"
-    package_json_path.write_text(new_package_json, encoding="utf-8")
-    session.run("npm", "install", external=True)
-
 
 def _setup_template_environment(session: nox.Session) -> None:
     session.install("dirsync")
@@ -173,7 +129,7 @@ def build_package(session: nox.Session) -> None:
         return
 
     try:
-        session.run("npm", "install", external=True)
+        session.run("npm", "ci", external=True)
         copy_dir(session, "../odoo-ls/server/typeshed", "typeshed")
         copy_dir(session, "../odoo-ls/server/additional_stubs", "additional_stubs")
         session.run("cp", "../odoo-ls/changelog.md", "changelog.md", external=True)
@@ -212,7 +168,7 @@ def build_package_prerelease(session: nox.Session) -> None:
         return
 
     try:
-        session.run("npm", "install", external=True)
+        session.run("npm", "ci", external=True)
         copy_dir(session, "../odoo-ls/server/typeshed", "typeshed")
         copy_dir(session, "../odoo-ls/server/additional_stubs", "additional_stubs")
         session.run("cp", "../odoo-ls/changelog.md", "changelog.md", external=True)
@@ -226,7 +182,26 @@ def build_package_prerelease(session: nox.Session) -> None:
         # Always revert package.json to its original form
         package_json_path.write_text(original_package_json, encoding="utf-8")
 
+def _require_npm_min_release_age(session: nox.Session) -> None:
+    """The `min-release-age` config (in npmrc.) config requires npm >= 11.10.0"""
+    raw = session.run("npm", "--version", external=True, silent=True)
+    # `npm --version` output may be preceded by warnings (notably the "Unknown
+    # project config min-release-age" warning emitted by npm older than 11.10.0),
+    # so extract the version by pattern instead of positionally.
+    matches = re.findall(r"\d+\.\d+\.\d+", raw)
+    if not matches:
+        session.error(f"Could not determine npm version from: {raw!r}")
+    version = matches[-1]
+    major, minor = (int(part) for part in version.split(".")[:2])
+    if (major, minor) < (11, 10):
+        session.error(
+            f"npm {version} silently ignores the `min-release-age` cooldown "
+            "(requires >= 11.10.0). Upgrade npm before updating dependencies"
+        )
+
 @nox.session()
 def update_packages(session: nox.Session) -> None:
-    """Update npm packages."""
-    _update_npm_packages(session)
+    """Bump dependencies within their existing semver ranges and regenerate the
+    lockfile. The .npmrc `min-release-age` cooldown is applied automatically."""
+    _require_npm_min_release_age(session)
+    session.run("npm", "update", "--save", external=True)

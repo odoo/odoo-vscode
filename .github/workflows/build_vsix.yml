@@ -72,11 +72,7 @@ jobs:
 
     - name: Install Node.js
       uses: actions/setup-node@v4
-    - run: npm install
-
-    - name: Install vsce
-      uses: actions/setup-node@v4
-    - run: npm install @vscode/vsce
+    - run: npm ci
 
     - name: Download language server ${{ matrix.target }}
       run: |
@@ -92,7 +88,7 @@ jobs:
         fi
 
     - name: Build VSIX for ${{ matrix.target }}
-      run: npx vsce ${{ steps.version.outputs.command }} --target ${{ matrix.vsix }}
+      run: npx --yes @vscode/vsce ${{ steps.version.outputs.command }} --target ${{ matrix.vsix }}
       env:
         NODE_ENV: production
 
