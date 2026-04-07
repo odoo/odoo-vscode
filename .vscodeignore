@@ -33,4 +33,3 @@ build/
 !node_modules/@vscode/codicons/**
 !node_modules/ejs/**
 !node_modules/vscode-languageclient/**
-!node_modules/untildify/**
