@@ -379,7 +379,7 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
                 if (selected === "Disabled" ){
                     // Stop the client if the selected profile is "Disabled"
                     // We already got the configurations
-                    global.LSCLIENT.stop();
+                    await stopClient();
                 }
             }),
             client.onNotification("$Odoo/invalid_python_path", async(params) => {
@@ -473,6 +473,11 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
 
                 if (!global.IS_PYTHON_EXTENSION_READY){
                     onDidChangePythonInterpreterEvent.fire(null);
+                }
+                const selected = workspace.getConfiguration().get("Odoo.selectedProfile") as string;
+                if (selected === "Disabled") {
+                    await setStatusConfig(context);
+                    return;
                 }
                 let client = global.LSCLIENT;
                 if (!client) {
@@ -719,11 +724,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
         deleteOldFiles(context);
         global.LSCLIENT.info('Starting the extension.');
         await setStatusConfig(context);
-        global.LSCLIENT.start();
+        await global.LSCLIENT.start();
     }
     catch (error) {
         displayCrashMessage(context, error, global.SERVER_PID, 'odoo.activate');
-        global.LSCLIENT.error(error);
+        global.LSCLIENT?.error(error);
     }
 }
 
