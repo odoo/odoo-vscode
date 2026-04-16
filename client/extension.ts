@@ -381,6 +381,7 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
                     // We already got the configurations
                     await stopClient();
                 }
+                await setStatusConfig(context);
             }),
             client.onNotification("$Odoo/invalid_python_path", async(params) => {
                 await window.showInformationMessage(
@@ -391,11 +392,9 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
                 await displayCrashMessage(context, params["crashInfo"], params["pid"], params["recentMessages"]);
             }),
             client.onNotification("$Odoo/restartNeeded", async () => {
-                if (global.LSCLIENT) {
-                    global.LSCLIENT.restart();
-                    global.LOADING_STATUS = "READY";
-                    await setStatusConfig(context);
-                }
+                await restartClient();
+                global.LOADING_STATUS = "READY";
+                await setStatusConfig(context);
             })
         );
         global.PATH_VARIABLES = {"userHome" : homedir().replaceAll("\\","/")};
@@ -549,11 +548,9 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
             ),
         commands.registerCommand(
             "odoo.restartServer", async () => {
-                if (global.LSCLIENT) {
-                    global.LSCLIENT.restart();
-                    global.LOADING_STATUS = "READY";
-                    await setStatusConfig(context);
-                }
+                await restartClient();
+                global.LOADING_STATUS = "READY";
+                await setStatusConfig(context);
         }),
         commands.registerCommand("odoo.showServerConfig", async () => {
             showConfigPreview("__all__");
@@ -742,13 +739,32 @@ async function waitForClientStop() {
 
 async function stopClient() {
     if (global.LSCLIENT && !global.CLIENT_IS_STOPPING) {
-        global.LSCLIENT.info("Stopping LS Client.");
+        global.LSCLIENT.info("[stopClient] Stopping LS Client.");
         global.LOADING_STATUS = "READY";
         global.CLIENT_IS_STOPPING = true;
         await global.LSCLIENT.stop(15000);
         global.CLIENT_IS_STOPPING = false;
         clientStopped.fire(null);
-        global.LSCLIENT.info("LS Client stopped.");
+        global.LSCLIENT.info("[stopClient] LS Client stopped.");
+    } else {
+        global.LSCLIENT?.info(`[stopClient] Skipped — LSCLIENT=${!!global.LSCLIENT}, CLIENT_IS_STOPPING=${global.CLIENT_IS_STOPPING}`);
+    }
+}
+
+async function restartClient() {
+    if (!global.LSCLIENT) return;
+    if (global.CLIENT_IS_STOPPING) {
+        global.LSCLIENT.info("[restartClient] Client is stopping, waiting...");
+        await waitForClientStop();
+    }
+    if (global.LSCLIENT.needsStart()) {
+        global.LSCLIENT.info("[restartClient] Client needs start — starting.");
+        await global.LSCLIENT.start();
+        global.LSCLIENT.info("[restartClient] Client started.");
+    } else {
+        global.LSCLIENT.info("[restartClient] Restarting LS Client.");
+        await global.LSCLIENT.restart();
+        global.LSCLIENT.info("[restartClient] Client restarted.");
     }
 }
 
@@ -864,8 +880,12 @@ async function showConfigProfileQuickPick(context: ExtensionContext) {
         showConfigPreview("__all__");
       } else {
         const ok = await changeSelectedConfig(context, selection.label);
-        if (ok && global.LSCLIENT) {
-            global.LSCLIENT.restart();
+        if (ok) {
+            if (selection.label === "Disabled") {
+                await stopClient();
+            } else {
+                await restartClient();
+            }
             global.LOADING_STATUS = "READY";
             await setStatusConfig(context);
         }
