@@ -225,7 +225,7 @@ async function setStatusConfig(context: ExtensionContext) {
             icon = "";
             break;
     }
-    let text = (config ? `Odoo (${config})` : `Odoo (Default)`);
+    let text = (config ? `Odoo (${config})` : `Odoo (default)`);
     global.STATUS_BAR.text = icon + text + text_git;
 
     let tooltipMd = '';
