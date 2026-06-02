@@ -14,4 +14,5 @@ declare global {
    var IS_PYTHON_EXTENSION_READY: boolean;
    var PYTHON_EXTENSION_LISTENER_INSTALLED: boolean;
    var PATH_VARIABLES: {[id: string] : string};
+   var DIAGNOSTIC_CONFIG_MESSAGES: Array<{level: number, message: string}>;
 }
