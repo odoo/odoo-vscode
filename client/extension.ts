@@ -22,6 +22,7 @@ import {
     TextEditor,
     DecorationOptions,
     MarkdownString,
+    ThemeColor,
 } from "vscode";
 import {
     LanguageClientOptions,
@@ -232,6 +233,19 @@ async function setStatusConfig(context: ExtensionContext) {
     let text = (config ? `Odoo (${config})` : `Odoo (default)`);
     global.STATUS_BAR.text = icon + text + text_git;
 
+    // Set background color based on highest diagnostic message level
+    const messages = global.DIAGNOSTIC_CONFIG_MESSAGES ?? [];
+    const maxLevel = messages.reduce((max, m) => Math.max(max, m.level), 0);
+    if (maxLevel >= 2) {
+        global.STATUS_BAR.backgroundColor = new ThemeColor("statusBarItem.errorBackground");
+    } else if (maxLevel === 1) {
+        global.STATUS_BAR.backgroundColor = new ThemeColor("statusBarItem.warningBackground");
+    } else if (maxLevel === 0) {
+        global.STATUS_BAR.backgroundColor = new ThemeColor("statusBarItem.successBackground");
+    } else {
+        global.STATUS_BAR.backgroundColor = undefined;
+    }
+
     let tooltipMd = '';
     if (config && config !== 'Disabled') {
         let configEntry = getCurrentConfigEntry(context);
@@ -253,6 +267,21 @@ async function setStatusConfig(context: ExtensionContext) {
                 tooltipMd += `  Not set  \n`;
             }
             tooltipMd += `\n\n**Python Path:**  ${pythonPath || 'Not set'}  \n`;
+            tooltipMd += `\n---\n`;
+        }
+        if (messages.length > 0) {
+            tooltipMd += `***Issues***\n\n`;
+            for (const m of messages) {
+                let msgIcon: string;
+                if (m.level >= 2) {
+                    msgIcon = "$(error)";
+                } else if (m.level === 1) {
+                    msgIcon = "$(warning)";
+                } else {
+                    msgIcon = "$(info)";
+                }
+                tooltipMd += `${msgIcon} ${m.message}  \n`;
+            }
             tooltipMd += `\n---\n`;
         }
     }
@@ -399,6 +428,19 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
             client.onNotification("$Odoo/restartNeeded", async () => {
                 await restartClient();
                 global.LOADING_STATUS = "READY";
+                global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+                await setStatusConfig(context);
+            }),
+            client.onNotification("$Odoo/diagnostic_config", async (params: { action: string, messages: Array<{level: number, message: string}> }) => {
+                if (params.action === "replace") {
+                    global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+                    global.DIAGNOSTIC_CONFIG_MESSAGES.push(...params.messages);
+                } else if (params.action === "extend") {
+                    if (!global.DIAGNOSTIC_CONFIG_MESSAGES) {
+                        global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+                    }
+                    global.DIAGNOSTIC_CONFIG_MESSAGES.push(...params.messages);
+                }
                 await setStatusConfig(context);
             })
         );
@@ -561,6 +603,7 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
             "odoo.restartServer", async () => {
                 await restartClient();
                 global.LOADING_STATUS = "READY";
+                global.DIAGNOSTIC_CONFIG_MESSAGES = [];
                 await setStatusConfig(context);
         }),
         commands.registerCommand("odoo.showServerConfig", async () => {
@@ -700,6 +743,7 @@ export function getCurrentConfigFromConfigFile(context: ExtensionContext): { odo
 export async function activate(context: ExtensionContext): Promise<void> {
     try {
         global.CAN_QUEUE_CONFIG_CHANGE = true;
+        global.DIAGNOSTIC_CONFIG_MESSAGES = [];
         checkCompromisedDependencies(context);
         global.OUTPUT_CHANNEL = window.createOutputChannel('Odoo', 'python');
         global.LSCLIENT = await initLanguageServerClient(context, global.OUTPUT_CHANNEL);
@@ -752,6 +796,7 @@ async function stopClient() {
     if (global.LSCLIENT && !global.CLIENT_IS_STOPPING) {
         global.LSCLIENT.info("[stopClient] Stopping LS Client.");
         global.LOADING_STATUS = "READY";
+        global.DIAGNOSTIC_CONFIG_MESSAGES = [];
         global.CLIENT_IS_STOPPING = true;
         await global.LSCLIENT.stop(15000);
         global.CLIENT_IS_STOPPING = false;
@@ -939,6 +984,7 @@ async function showConfigProfileQuickPick(context: ExtensionContext) {
       } else {
         const ok = await changeSelectedConfig(context, selection.label);
         if (ok) {
+            global.DIAGNOSTIC_CONFIG_MESSAGES = [];
             if (selection.label === "Disabled") {
                 await stopClient();
             } else {
