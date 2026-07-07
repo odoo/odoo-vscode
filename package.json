@@ -159,6 +159,46 @@
         ],
         "url": "https://github.com/odoo/odoo-ls/releases/download/__SCHEMA_VERSION__/config_schema.json"
       }
+    ],
+    "grammars": [
+      {
+        "scopeName": "odoo.owl.template",
+        "path": "./syntaxes/owl.template.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.javascript": "source.js"
+        },
+        "injectTo": [
+          "text.xml"
+        ]
+      },
+      {
+        "scopeName": "odoo.owl.template.inline",
+        "path": "./syntaxes/owl.template.inline.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.xml": "xml"
+        },
+        "injectTo": [
+          "source.js",
+          "source.jsx",
+          "source.ts",
+          "source.tsx",
+          "text.html"
+        ]
+      },
+      {
+        "scopeName": "odoo.owl.markup.inline",
+        "path": "./syntaxes/owl.markup.inline.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.html": "html"
+        },
+        "injectTo": [
+          "source.js",
+          "source.jsx",
+          "source.ts",
+          "source.tsx",
+          "text.html"
+        ]
+      }
     ]
   },
   "main": "./client/out/main.js",
