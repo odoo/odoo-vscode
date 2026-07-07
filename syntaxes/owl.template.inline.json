@@ -1,0 +1,44 @@
+{
+    "information_for_contributors": [
+        "OWL template syntax highlighting for Odoo, vendored from the Owl Vision extension (https://github.com/odoo/owl, tools/owl-vision), LGPL-3.0-only, (c) Odoo S.A.",
+        "Only the root scopeName is prefixed with 'odoo.' (to avoid collisions if Owl Vision is co-installed); all inner token scopes are unchanged. owl.template.json is generated upstream by scripts/owl_template_syntax.mjs; the inline grammars are hand-maintained. Re-sync by re-copying from upstream and re-applying the odoo.* scopeName prefix."
+    ],
+    "injectionSelector": "L:source.js -comment -(string -meta.embedded)",
+    "scopeName": "odoo.owl.template.inline",
+    "patterns": [
+        {
+            "include": "#xml-tag"
+        }
+    ],
+    "repository": {
+        "xml-tag": {
+            "begin": "\\s+(xml)(`)",
+            "contentName": "meta.embedded.block.xml",
+            "beginCaptures": {
+                "1": {
+                    "name": "entity.name.function.tagged-template.js"
+                },
+                "2": {
+                    "name": "punctuation.definition.string.template.begin.js"
+                }
+            },
+            "end": "(`)",
+            "endCaptures": {
+                "0": {
+                    "name": "string.js"
+                },
+                "1": {
+                    "name": "punctuation.definition.string.template.end.js"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "odoo.owl.template"
+                },
+                {
+                    "include": "text.xml"
+                }
+            ]
+        }
+    }
+}
