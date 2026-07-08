@@ -252,6 +252,48 @@
                 }
             ]
         },
+        "owl-attributes-generic": {
+            "patterns": [
+                {
+                    "contentName": "string.quoted.double.xml",
+                    "begin": "(\\s*)(t-[a-zA-Z][a-zA-Z0-9_:.-]*)(=)(\")",
+                    "beginCaptures": {
+                        "2": {
+                            "name": "entity.other.attribute-name.localname.xml owl.attribute owl.attribute.generic"
+                        },
+                        "4": {
+                            "name": "punctuation.definition.string.begin.xml"
+                        }
+                    },
+                    "end": "(\")",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.xml"
+                        }
+                    },
+                    "patterns": []
+                },
+                {
+                    "contentName": "string.quoted.single.xml",
+                    "begin": "(\\s*)(t-[a-zA-Z][a-zA-Z0-9_:.-]*)(=)(')",
+                    "beginCaptures": {
+                        "2": {
+                            "name": "entity.other.attribute-name.localname.xml owl.attribute owl.attribute.generic"
+                        },
+                        "4": {
+                            "name": "punctuation.definition.string.begin.xml"
+                        }
+                    },
+                    "end": "(')",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.xml"
+                        }
+                    },
+                    "patterns": []
+                }
+            ]
+        },
         "owl-attributes-formatted-string": {
             "patterns": [
                 {
@@ -473,6 +515,9 @@
                     "include": "#owl-attributes-dynamic"
                 },
                 {
+                    "include": "#owl-attributes-generic"
+                },
+                {
                     "include": "#props-attributes"
                 }
             ]
@@ -507,6 +552,9 @@
                     "include": "#owl-attributes-static"
                 },
                 {
+                    "include": "#owl-attributes-generic"
+                },
+                {
                     "include": "#html-attributes"
                 }
             ]
@@ -539,6 +587,9 @@
                 },
                 {
                     "include": "#owl-attributes-static"
+                },
+                {
+                    "include": "#owl-attributes-generic"
                 }
             ]
         }
