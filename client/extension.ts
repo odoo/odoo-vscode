@@ -59,6 +59,8 @@ function getClientOptions(): LanguageClientOptions {
             { scheme: "file", language: "python" },
             { scheme: "file", language: "xml" },
             { scheme: "file", language: "csv" },
+            { scheme: "file", language: "javascript" },
+            { scheme: "file", language: "typescript" },
             { scheme: "untitled", language: "python" },
         ],
         synchronize: {
@@ -161,7 +163,9 @@ function updateLastRecordedVersion(context: ExtensionContext) {
     context.globalState.update("Odoo.lastRecordedVersion", context.extension.packageJSON.version);
 }
 
-function startLangServerTCP(addr: number, outputChannel: OutputChannel): SafeLanguageClient {
+function startLangServerTCP(addr: number,
+    outputChannel: OutputChannel
+): SafeLanguageClient {
     const serverOptions: ServerOptions = () => {
         return new Promise((resolve /*, reject */) => {
             const clientSocket = new net.Socket();
@@ -327,9 +331,10 @@ async function displayCrashMessage(context: ExtensionContext, crashInfo: string,
 async function initLanguageServerClient(context: ExtensionContext, outputChannel: OutputChannel, autoStart = false) {
     let client : SafeLanguageClient;
     try {
-        if (!workspace.getConfiguration('Odoo').get("disablePythonLanguageServerPopup", false)){
+        if (!workspace.getConfiguration().get("Odoo.disablePythonLanguageServerPopup", false)){
             displayDisablePythonLSMessage();
         }
+        displayDisableJsLSMessage();
 
         global.SERVER_PID = 0;
         let serverPath = "./odoo_ls_server.exe";
@@ -483,8 +488,11 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
                     await client.start();
                 }
                 await setStatusConfig(context);
-                if (event.affectsConfiguration("Odoo.disablePythonLanguageServerPopup") && !workspace.getConfiguration('Odoo').get("disablePythonLanguageServerPopup", false)){
+                if (event.affectsConfiguration("Odoo.disablePythonLanguageServerPopup") && !workspace.getConfiguration().get("Odoo.disablePythonLanguageServerPopup", false)){
                     displayDisablePythonLSMessage()
+                }
+                if (event.affectsConfiguration("Odoo.disableJsLanguageServerPopup") && !workspace.getConfiguration().get("Odoo.disableJsLanguageServerPopup", false)){
+                    displayDisableJsLSMessage();
                 }
                // Restart LS client if log_level or config_path changes
                if (
@@ -541,6 +549,9 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
         }),
         commands.registerCommand(
             "odoo.disablePythonLanguageServerCommand", setPythonLSNone
+            ),
+        commands.registerCommand(
+            "odoo.disableJsLanguageServerCommand", showJsExtensionToDisable
             ),
         commands.registerCommand(
             "odoo.restartServer", async () => {
@@ -761,6 +772,29 @@ async function setPythonLSNone() {
         );
 }
 
+async function showJsExtensionToDisable() {
+    try {
+        const ext = extensions.getExtension('vscode.typescript-language-features');
+
+        if (ext) {
+            await commands.executeCommand(
+                'workbench.extensions.search',
+                '@builtin typescript-language-features'
+            );
+        }
+    } catch (error) {
+        window.showErrorMessage(`Failed to display javascript builtin extension: ${error}`);
+    }
+}
+
+function isJsLSAlreadyDisabled(): boolean {
+    const ext = extensions.getExtension('vscode.typescript-language-features');
+    if (ext) {
+        return !ext.isActive;
+    };
+    return true;
+}
+
 async function displayDisablePythonLSMessage() {
     if (!global.IS_PYTHON_EXTENSION_READY){
         return
@@ -780,7 +814,31 @@ async function displayDisablePythonLSMessage() {
                 await setPythonLSNone();
                 break;
             case "Don't Show again":
-                await workspace.getConfiguration('Odoo').update("disablePythonLanguageServerPopup", true, ConfigurationTarget.Global)
+                await workspace.getConfiguration().update("Odoo.disablePythonLanguageServerPopup", true, ConfigurationTarget.Global)
+        }
+    });
+}
+
+async function displayDisableJsLSMessage() {
+    if (workspace.getConfiguration().get("Odoo.disableJsLanguageServerPopup", false)) {
+        return;
+    }
+    if (isJsLSAlreadyDisabled()) {
+        return;
+    }
+    window.showInformationMessage(
+        "To avoid conflicting results between vscode and OdooLS for javascript files, we recommend disabling the built-in Javascript/Typescript language extension.",
+        "Yes, show me the extension",
+        "No",
+        "Don't Show again",
+    ).then(async selection => {
+        switch (selection) {
+            case "Yes, show me the extension":
+                await showJsExtensionToDisable();
+                break;
+            case "Don't Show again":
+                await workspace.getConfiguration().update("Odoo.disableJsLanguageServerPopup", true, ConfigurationTarget.Global);
+                break;
         }
     });
 }
