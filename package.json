@@ -18,7 +18,10 @@
   "icon": "images/odoo_logo.png",
   "activationEvents": [
     "onView:explorer",
-    "workspaceContains:**/__manifest__.py"
+    "workspaceContains:**/__manifest__.py",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:python"
   ],
   "contributes": {
     "languages": [
@@ -70,6 +73,11 @@
         "category": "Odoo"
       },
       {
+        "command": "odoo.disableJsLanguageServerCommand",
+        "title": "Disable built-in JavaScript/TypeScript language features (validation and suggestions)",
+        "category": "Odoo"
+      },
+      {
         "command": "odoo.restartServer",
         "title": "Restart Language Server",
         "category": "Odoo"
@@ -100,6 +108,12 @@
           "type": "boolean",
           "default": false,
           "markdownDescription": "Set LanguageServer setting on Python extension to None on workspace level after user input (Does nothing if python extension is not active or already set to `None`)"
+        },
+        "Odoo.disableJsLanguageServerPopup": {
+          "scope": "window",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Suppress the popup asking to disable built-in JavaScript/TypeScript language features when Odoo's server is active"
         },
         "Odoo.serverLogLevel": {
           "scope": "window",
