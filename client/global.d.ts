@@ -14,5 +14,11 @@ declare global {
    var IS_PYTHON_EXTENSION_READY: boolean;
    var PYTHON_EXTENSION_LISTENER_INSTALLED: boolean;
    var PATH_VARIABLES: {[id: string] : string};
-   var DIAGNOSTIC_CONFIG_MESSAGES: Array<{level: number, message: string}>;
+   // `profile` scopes a message to one declared config profile — only meaningful
+   // for diagnostics spanning multiple profiles at once (setConfiguration.diagnostics).
+   type DiagnosticMessage = {level: number, message: string, profile?: string};
+   var CONFIG_RELOAD_DIAGNOSTICS: Array<DiagnosticMessage>;
+   // From $Odoo/diagnostic_config (e.g. future JS/tsserver diagnostics). Always
+   // about the one profile the server is currently running, so no `profile` field.
+   var ASYNC_DIAGNOSTICS: Array<{level: number, message: string}>;
 }
