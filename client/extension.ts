@@ -211,6 +211,16 @@ function startLangServer(
 const RESTART_COMMAND_MD = `[$(list-unordered) Show all configurations](command:odoo.showServerConfig "Show all configurations")\n
 [$(debug-restart) Reload Server and Configuration](command:odoo.restartServer "Reload Server and Configuration")`;
 
+// Diagnostic messages embed user-controlled config values (paths, rejected
+// values); escape Markdown syntax before it reaches the trusted tooltip so a
+// config value can't render as a link/command or break the tooltip's layout.
+function escapeMarkdown(text: string): string {
+    return text
+        .replace(/\\/g, '\\\\')
+        .replace(/([`*_{}[\]()#+\-.!|>~])/g, '\\$1')
+        .replace(/\r?\n/g, ' ');
+}
+
 async function setStatusConfig(context: ExtensionContext) {
     const config = await getCurrentConfig(context);
     let icon: string;
@@ -233,8 +243,14 @@ async function setStatusConfig(context: ExtensionContext) {
     let text = (config ? `Odoo (${config})` : `Odoo (default)`);
     global.STATUS_BAR.text = icon + text + text_git;
 
-    // Set background color based on highest diagnostic message level
-    const messages = global.DIAGNOSTIC_CONFIG_MESSAGES ?? [];
+    let configEntry = getCurrentConfigEntry(context);
+
+    // Scope to the selected profile (untagged messages always count); if it
+    // can't be resolved, fail open rather than hide real diagnostics.
+    const allMessages: DiagnosticMessage[] = [...(global.CONFIG_RELOAD_DIAGNOSTICS ?? []), ...(global.ASYNC_DIAGNOSTICS ?? [])];
+    const messages = configEntry
+        ? allMessages.filter(m => !m.profile || m.profile === configEntry.name)
+        : allMessages;
     const maxLevel = messages.reduce((max, m) => Math.max(max, m.level), 0);
     if (maxLevel >= 2) {
         global.STATUS_BAR.backgroundColor = new ThemeColor("statusBarItem.errorBackground");
@@ -247,8 +263,7 @@ async function setStatusConfig(context: ExtensionContext) {
     }
 
     let tooltipMd = '';
-    if (config && config !== 'Disabled') {
-        let configEntry = getCurrentConfigEntry(context);
+    if (config !== 'Disabled') {
         if (configEntry) {
             const odooPath = configEntry.odoo_path?.value || configEntry.odoo_path || '';
             const pythonPath = configEntry.python_path?.value || configEntry.python_path || '';
@@ -280,7 +295,7 @@ async function setStatusConfig(context: ExtensionContext) {
                 } else {
                     msgIcon = "$(info)";
                 }
-                tooltipMd += `${msgIcon} ${m.message}  \n`;
+                tooltipMd += `${msgIcon} ${escapeMarkdown(m.message)}  \n`;
             }
             tooltipMd += `\n---\n`;
         }
@@ -406,9 +421,10 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
             client.onNotification("$Odoo/setPid", async(params) => {
                 global.SERVER_PID = params["server_pid"];
             }),
-            client.onNotification("$Odoo/setConfiguration", async (payload: { html: Record<string, string>, configFile: any }) =>  {
+            client.onNotification("$Odoo/setConfiguration", async (payload: { html: Record<string, string>, configFile: any, diagnostics?: Array<DiagnosticMessage> }) =>  {
                 CONFIG_HTML_MAP = payload.html || {};
                 CONFIG_FILE = payload.configFile;
+                global.CONFIG_RELOAD_DIAGNOSTICS = payload.diagnostics ?? [];
                 const selected = workspace.getConfiguration().get("Odoo.selectedProfile") as string;
                 if (selected === "Disabled" ){
                     // Stop the client if the selected profile is "Disabled"
@@ -428,18 +444,19 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
             client.onNotification("$Odoo/restartNeeded", async () => {
                 await restartClient();
                 global.LOADING_STATUS = "READY";
-                global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+                global.CONFIG_RELOAD_DIAGNOSTICS = [];
+                global.ASYNC_DIAGNOSTICS = [];
                 await setStatusConfig(context);
             }),
             client.onNotification("$Odoo/diagnostic_config", async (params: { action: string, messages: Array<{level: number, message: string}> }) => {
                 if (params.action === "replace") {
-                    global.DIAGNOSTIC_CONFIG_MESSAGES = [];
-                    global.DIAGNOSTIC_CONFIG_MESSAGES.push(...params.messages);
+                    global.ASYNC_DIAGNOSTICS = [];
+                    global.ASYNC_DIAGNOSTICS.push(...params.messages);
                 } else if (params.action === "extend") {
-                    if (!global.DIAGNOSTIC_CONFIG_MESSAGES) {
-                        global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+                    if (!global.ASYNC_DIAGNOSTICS) {
+                        global.ASYNC_DIAGNOSTICS = [];
                     }
-                    global.DIAGNOSTIC_CONFIG_MESSAGES.push(...params.messages);
+                    global.ASYNC_DIAGNOSTICS.push(...params.messages);
                 }
                 await setStatusConfig(context);
             })
@@ -602,8 +619,9 @@ async function initializeSubscriptions(context: ExtensionContext): Promise<void>
         commands.registerCommand(
             "odoo.restartServer", async () => {
                 await restartClient();
+                global.CONFIG_RELOAD_DIAGNOSTICS = [];
+                global.ASYNC_DIAGNOSTICS = [];
                 global.LOADING_STATUS = "READY";
-                global.DIAGNOSTIC_CONFIG_MESSAGES = [];
                 await setStatusConfig(context);
         }),
         commands.registerCommand("odoo.showServerConfig", async () => {
@@ -743,7 +761,8 @@ export function getCurrentConfigFromConfigFile(context: ExtensionContext): { odo
 export async function activate(context: ExtensionContext): Promise<void> {
     try {
         global.CAN_QUEUE_CONFIG_CHANGE = true;
-        global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+        global.CONFIG_RELOAD_DIAGNOSTICS = [];
+        global.ASYNC_DIAGNOSTICS = [];
         checkCompromisedDependencies(context);
         global.OUTPUT_CHANNEL = window.createOutputChannel('Odoo', 'python');
         global.LSCLIENT = await initLanguageServerClient(context, global.OUTPUT_CHANNEL);
@@ -796,7 +815,8 @@ async function stopClient() {
     if (global.LSCLIENT && !global.CLIENT_IS_STOPPING) {
         global.LSCLIENT.info("[stopClient] Stopping LS Client.");
         global.LOADING_STATUS = "READY";
-        global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+        global.CONFIG_RELOAD_DIAGNOSTICS = [];
+        global.ASYNC_DIAGNOSTICS = [];
         global.CLIENT_IS_STOPPING = true;
         await global.LSCLIENT.stop(15000);
         global.CLIENT_IS_STOPPING = false;
@@ -984,7 +1004,8 @@ async function showConfigProfileQuickPick(context: ExtensionContext) {
       } else {
         const ok = await changeSelectedConfig(context, selection.label);
         if (ok) {
-            global.DIAGNOSTIC_CONFIG_MESSAGES = [];
+            global.CONFIG_RELOAD_DIAGNOSTICS = [];
+            global.ASYNC_DIAGNOSTICS = [];
             if (selection.label === "Disabled") {
                 await stopClient();
             } else {
