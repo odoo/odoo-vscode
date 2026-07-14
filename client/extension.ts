@@ -221,6 +221,17 @@ function escapeMarkdown(text: string): string {
         .replace(/\r?\n/g, ' ');
 }
 
+// configEntry fields from CONFIG_FILE are either a plain string, a `{value,
+// sources, info}` sourced object, or absent — and `.value` can legitimately be
+// an empty string, so `field.value || field` would fall through to the whole
+// object/array and render as "[object Object]". Extract the string explicitly.
+function sourcedStringValue(field: any): string {
+    if (field && typeof field === 'object') {
+        return typeof field.value === 'string' ? field.value : '';
+    }
+    return typeof field === 'string' ? field : '';
+}
+
 async function setStatusConfig(context: ExtensionContext) {
     const config = await getCurrentConfig(context);
     let icon: string;
@@ -265,11 +276,11 @@ async function setStatusConfig(context: ExtensionContext) {
     let tooltipMd = '';
     if (config !== 'Disabled') {
         if (configEntry) {
-            const odooPath = configEntry.odoo_path?.value || configEntry.odoo_path || '';
-            const pythonPath = configEntry.python_path?.value || configEntry.python_path || '';
+            const odooPath = sourcedStringValue(configEntry.odoo_path);
+            const pythonPath = sourcedStringValue(configEntry.python_path);
             let addonsPaths: string[] = [];
             if (Array.isArray(configEntry.addons_paths)) {
-                addonsPaths = configEntry.addons_paths.map((a: any) => a.value || a).filter(Boolean);
+                addonsPaths = configEntry.addons_paths.map(sourcedStringValue).filter(Boolean);
             }
             tooltipMd += `**Odoo Path:** ${odooPath || 'Not set'}  \n`;
             tooltipMd += `**Addons Paths:**  \n`
@@ -750,10 +761,10 @@ export function getCurrentConfigEntry(context: ExtensionContext): any | undefine
 export function getCurrentConfigFromConfigFile(context: ExtensionContext): { odooPath?: string, addons?: string[] } | undefined {
     const entry = getCurrentConfigEntry(context);
     if (!entry) return undefined;
-    const odooPath = entry.odoo_path?.value || entry.odoo_path;
+    const odooPath = sourcedStringValue(entry.odoo_path) || undefined;
     let addons: string[] = [];
     if (Array.isArray(entry.addons_paths)) {
-        addons = entry.addons_paths.map((a: any) => a.value || a).filter(Boolean);
+        addons = entry.addons_paths.map(sourcedStringValue).filter(Boolean);
     }
     return { odooPath, addons };
 }
