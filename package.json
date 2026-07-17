@@ -165,7 +165,7 @@
         "scopeName": "odoo.owl.template",
         "path": "./syntaxes/owl.template.json",
         "embeddedLanguages": {
-          "meta.embedded.block.javascript": "source.js"
+          "meta.embedded.block.javascript": "javascript"
         },
         "injectTo": [
           "text.xml"
@@ -179,9 +179,6 @@
         },
         "injectTo": [
           "source.js",
-          "source.jsx",
-          "source.ts",
-          "source.tsx",
           "text.html"
         ]
       },
@@ -193,9 +190,6 @@
         },
         "injectTo": [
           "source.js",
-          "source.jsx",
-          "source.ts",
-          "source.tsx",
           "text.html"
         ]
       }

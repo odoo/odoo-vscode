@@ -17,4 +17,6 @@ Vendored from the Owl Vision extension (<https://github.com/odoo/owl>, `tools/ow
 
 Re-copy the files from upstream, then re-apply both local changes above.
 
+Don't re-copy the `contributes.grammars` block in `package.json`: it is deliberately narrower than upstream's. Odoo is plain JavaScript, so `source.jsx`, `source.ts` and `source.tsx` are omitted from `injectTo`.
+
 TODO: upstream `owl-attributes-generic` into `scripts/owl_template_syntax.mjs` so change 2 survives a re-sync on its own.
