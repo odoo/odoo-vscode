@@ -389,7 +389,6 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
         if (!workspace.getConfiguration().get("Odoo.disablePythonLanguageServerPopup", false)){
             displayDisablePythonLSMessage();
         }
-        displayDisableJsLSMessage();
 
         global.SERVER_PID = 0;
         let serverPath = "./odoo_ls_server.exe";
@@ -448,6 +447,12 @@ async function initLanguageServerClient(context: ExtensionContext, outputChannel
                 await window.showInformationMessage(
                     "The Python path configured for Odoo is invalid. Some functionality may not work correctly. Please update the configuration.",
                 );
+            }),
+            client.onNotification("$Odoo/jsLsStatus", async (running: boolean) => {
+                global.IS_JS_LS_RUNNING = running;
+                if (running) {
+                    await displayDisableJsLSMessage();
+                }
             }),
             client.onNotification("Odoo/displayCrashNotification", async (params) => {
                 await displayCrashMessage(context, params["crashInfo"], params["pid"], params["recentMessages"]);
@@ -774,6 +779,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         global.CAN_QUEUE_CONFIG_CHANGE = true;
         global.CONFIG_RELOAD_DIAGNOSTICS = [];
         global.ASYNC_DIAGNOSTICS = [];
+        global.IS_JS_LS_RUNNING = false;
         checkCompromisedDependencies(context);
         global.OUTPUT_CHANNEL = window.createOutputChannel('Odoo', 'python');
         global.LSCLIENT = await initLanguageServerClient(context, global.OUTPUT_CHANNEL);
@@ -917,6 +923,9 @@ async function displayDisablePythonLSMessage() {
 }
 
 async function displayDisableJsLSMessage() {
+    if (!global.IS_JS_LS_RUNNING) {
+        return;
+    }
     if (workspace.getConfiguration().get("Odoo.disableJsLanguageServerPopup", false)) {
         return;
     }
