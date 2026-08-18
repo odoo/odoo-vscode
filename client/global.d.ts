@@ -9,6 +9,7 @@ declare global {
    var OUTPUT_CHANNEL: OutputChannel;
    var LOADING_STATUS: String;
    var SERVER_PID: number;
+   var IS_JS_LS_RUNNING: boolean;
    var CLIENT_IS_STOPPING: boolean;
    var CAN_QUEUE_CONFIG_CHANGE: boolean;
    var IS_PYTHON_EXTENSION_READY: boolean;
