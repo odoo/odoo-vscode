@@ -38,9 +38,6 @@
         ]
       }
     ],
-    "configurationDefaults": {
-      "editor.gotoLocation.alternativeDefinitionCommand": ""
-    },
     "commands": [
       {
         "command": "odoo.clickStatusBar",
