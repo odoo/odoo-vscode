@@ -13,8 +13,6 @@
 
 This extension integrates the Odoo Language Server, that will help you in the development of your Odoo projects.
 
-**This project is currently under active development. This is a complex project, and you can encounter various issues, incoherent data or crashes. Do not hesitate to report them to help us build the perfect tool !**
-
 This repository contains the code that build the VsCode extension for OdooLS. OdooLs itself is available [here](https://github.com/odoo/odoo-ls)
 
 ## Features
@@ -59,6 +57,7 @@ Install the extension from the marketplace
 - node >= 14.19.0
 - npm >= 8.3.0 (`npm` is installed with node, check npm version, use `npm install -g npm@8.3.0` to update)
 - @vscode/vsce >= 3.2.1 (`npm i -g @vscode/vsce`)
+- Odoo-ls already compiled in a `odoo-ls` directory next to this one. Build script will search for `../odoo-ls/` directory
 
 #### How to bundle into .vsix
 
